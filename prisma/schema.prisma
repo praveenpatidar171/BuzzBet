@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  name        String?
+  email       String?      @unique
+  phoneNumber String?      @unique
+  password    String
+  isAdmin     Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  predictions Prediction[]
+  wallet      Wallet?
+}
+
+model Wallet {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  balance   Int      @default(100000)
+  updatedAt DateTime @updatedAt
+}
+
+model Market {
+  id          Int              @id @default(autoincrement())
+  question    String
+  title       String
+  imageUrl    String?
+  description String?
+  status      MarketStatus     @default(OPEN)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  predictions Prediction[]
+  snapshots   MarketSnapshot[]
+}
+
+model Prediction {
+  id                 Int          @id @default(autoincrement())
+  userId             Int
+  user               User         @relation(fields: [userId], references: [id])
+  marketId           Int
+  market             Market       @relation(fields: [marketId], references: [id])
+  choice             Choice
+  amount             Int
+  remainingAmount    Int
+  quantity           Int
+  matchedQuantity    Float?
+  entryPrice         Float
+  status             BetStatus    @default(PENDING)
+  matchedAt          DateTime?
+  parentPredictionId Int?
+  parentPrediction   Prediction?  @relation("PartialBets", fields: [parentPredictionId], references: [id])
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  partialBets        Prediction[] @relation("PartialBets")
+
+  @@index([userId, marketId])
+}
+
+model MarketSnapshot {
+  id        Int      @id @default(autoincrement())
+  market    Market?  @relation(fields: [marketId], references: [id])
+  marketId  Int?
+  yesCount  Int
+  noCount   Int
+  yesPrice  Float    @default(5.0)
+  createdAt DateTime @default(now())
+}
+
+enum Choice {
+  YES
+  NO
+}
+
+enum MarketStatus {
+  OPEN
+  CLOSED
+  RESOLVED
+}
+
+enum BetStatus {
+  PENDING
+  MATCHED
+  REFUNDED
+  CANCELLED
+  RESOLVED
+}
