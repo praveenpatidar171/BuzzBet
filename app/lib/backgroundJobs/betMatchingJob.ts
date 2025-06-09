@@ -238,12 +238,7 @@ async function matchPendingBets() {
 
             await redis.publish('snapshot:update', JSON.stringify({
               marketId: lockedBet.marketId,
-              newsnap: {
-                yesCount: newSnap.yesCount,
-                yesPrice: newSnap.yesPrice,
-                noCount: newSnap.noCount,
-                createdAt: new Date()
-              }
+              newsnap: newSnap
             }))
           }
 

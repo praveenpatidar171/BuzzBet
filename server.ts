@@ -44,9 +44,21 @@ app.prepare().then(() => {
 
                 io.to(`market-${marketId}`).emit('snapshot:update', {
                     marketId: marketId,
-                    snapshot: newsnap
+                    snapshot: {
+                        yesCount: newsnap.yesCount,
+                        yesPrice: newsnap.yesPrice,
+                        noCount: newsnap.noCount,
+                        createdAt: newsnap.createdAt
+                    }
                 })
                 console.log(`Emitted new snapshot to room: market-${marketId}`);
+
+                io.to("markets").emit('snapshot:update', {
+                    marketId,
+                    snapshot: newsnap
+                })
+
+                console.log(`Also emitted to room: markets`);
             } catch (e) {
                 console.error("Error parsing message or emitting snapshot:", e);
             }
@@ -59,6 +71,16 @@ app.prepare().then(() => {
         socket.on("joinMarket", (marketId: string) => {
             socket.join(`market-${marketId}`);
             console.log(`User joined room market-${marketId}`);
+        });
+
+        socket.on('join-room', (RoomName: string) => {
+            socket.join(RoomName);
+            console.log(`User joined room market-${RoomName}`);
+        })
+
+        socket.on("leave-room", (roomName: string) => {
+            socket.leave(roomName);
+            console.log(`User left room ${roomName}`);
         });
 
         socket.on("disconnect", () => {

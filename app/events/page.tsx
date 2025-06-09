@@ -3,6 +3,7 @@ import { EventCard } from "@/components/EventCard";
 import axios, { AxiosRequestConfig } from "axios";
 import { useEffect, useState } from "react";
 import { MarketStatus } from "../generated/prisma";
+import { getSocket } from "../lib/socket";
 
 interface allEvents {
     id: number,
@@ -43,6 +44,31 @@ export default function () {
 
     useEffect(() => {
         getAllMarkets();
+    }, [])
+
+    useEffect(() => {
+
+        const socket = getSocket();
+        console.log('Socket:', socket.connected);
+
+        socket.emit('join-room', 'markets')
+
+        socket.onAny((event, ...args) => {
+            console.log(`📡 Received event: ${event}`, args);
+        });
+
+        const handleData = (data: { marketId: string, snapshot: { id: number, marketId: number, createdAt: Date, yesPrice: number, yesCount: number, noCount: number } }) => {
+            console.log('recevied data inside socket :', data);
+            setAllEvents((prev) => prev?.map((event) => event.id === Number(data.marketId) ? { ...event, snapshots: [data.snapshot] } : event));
+        }
+
+        socket.on('snapshot:update', handleData);
+
+        return () => {
+            socket.off('snapshot:update', handleData);
+            socket.emit('leave-room', 'markets');
+        }
+
     }, [])
     return (
         <div className="bg-[#f5f5f5]">
