@@ -21,6 +21,8 @@ async function matchPendingBets() {
       let betRemaining = bet.remainingAmount;
       if (betRemaining <= 0) continue;
 
+      const affectedUsers = new Set<number>();
+
       const oppositeChoice = bet.choice === 'YES' ? 'NO' : 'YES';
       const complementaryPrice = +(10 - bet.entryPrice).toFixed(1);
       console.log('bet price is :', bet.entryPrice);
@@ -138,13 +140,11 @@ async function matchPendingBets() {
               matchedAt: newOppositeRemaining === 0 ? now : undefined,
             },
           });
-
+          affectedUsers.add(lockedBet.userId)
+          affectedUsers.add(lockedOpposite.userId)
           betRemaining = newBetRemaining;
 
           console.log(`Matched ${matchAmount} between bet ${bet.id} and opposite ${opposite.id}`);
-
-
-
 
 
           // Get total amount per choice (YES)
@@ -243,6 +243,11 @@ async function matchPendingBets() {
           }
 
         });
+
+        for (const userId of affectedUsers) {
+          console.log('inside the affetceduser')
+          await redis.publish('prediction:update', JSON.stringify({ userId }));
+        }
       }
     }
 

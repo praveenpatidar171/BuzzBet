@@ -1,6 +1,7 @@
 'use client'
 import axios, { AxiosRequestConfig } from "axios"
 import { act, useEffect, useState } from "react"
+import { getSocket } from "../lib/socket"
 
 export interface Imarket {
     id: number,
@@ -53,7 +54,7 @@ export interface Ibets {
 }
 
 
-export const useGetAllBets = () => {
+export const useGetAllBets = (userId: number) => {
 
     const [active, setActive] = useState<Ibets[]>();
     const [inactive, setInactive] = useState<Ibets[]>();
@@ -77,7 +78,32 @@ export const useGetAllBets = () => {
 
     useEffect(() => {
         fetchAllBets();
-    }, []);
+
+        if (!userId) return;
+
+        const socket = getSocket();
+        console.log('Socket:', socket.connected);
+
+        socket.onAny((event, ...args) => {
+            console.log(`📡 Received event: ${event}`, args);
+        });
+
+
+        const onPortfolioUpdate = (data: { active: Ibets[], inactive: Ibets[] }) => {
+            console.log("🔁 Received real-time portfolio update from socket:", data);
+            setActive(data.active);
+            setInactive(data.inactive);
+        };
+
+        socket.emit('join-room', `user-${userId}`);
+        socket.off('portfolio:update:full', onPortfolioUpdate);
+        socket.on('portfolio:update:full', onPortfolioUpdate);
+
+        return () => {
+            socket.emit("leave-room", `user-${userId}`);
+        };
+
+    }, [userId]);
 
 
     return { active, inactive };

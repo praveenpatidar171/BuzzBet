@@ -3,6 +3,7 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { parse } from "url";
 import redis from "./app/lib/utils/globalRedis";
+import { getUpdatedPortfolio } from "./app/lib/predictionsUpdate";
 
 console.log('server.ts is started')
 
@@ -34,7 +35,15 @@ app.prepare().then(() => {
         }
     })
 
-    redis.on('message', (channel, message) => {
+    redis.subscribe('prediction:update', (err) => {
+        if (err) {
+            console.error("Failed to subscribe to prediction:update:", err);
+        } else {
+            console.log("Subscribed to prediction:update");
+        }
+    });
+
+    redis.on('message', async (channel, message) => {
         if (channel === 'snapshot:update') {
             try {
                 const { marketId, newsnap } = JSON.parse(message);
@@ -63,6 +72,24 @@ app.prepare().then(() => {
                 console.error("Error parsing message or emitting snapshot:", e);
             }
         }
+
+        if (channel === 'prediction:update') {
+            try {
+                const { userId } = JSON.parse(message);
+                if (!userId) return;
+                const { active, inactive } = await getUpdatedPortfolio(Number(userId));
+
+                io.to(`user-${userId}`).emit("portfolio:update:full", {
+                    active,
+                    inactive,
+                });
+
+                console.log(`Emitted updated portfolio to user-${userId}`);
+
+            } catch (error) {
+                console.error("Error in prediction:update handler:", error);
+            }
+        }
     })
 
     io.on("connection", (socket) => {
@@ -75,7 +102,7 @@ app.prepare().then(() => {
 
         socket.on('join-room', (RoomName: string) => {
             socket.join(RoomName);
-            console.log(`User joined room market-${RoomName}`);
+            console.log(`User joined room ${RoomName}`);
         })
 
         socket.on("leave-room", (roomName: string) => {

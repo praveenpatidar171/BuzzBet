@@ -4,12 +4,16 @@ import { ClosedBets } from "@/components/ClosedBets"
 
 import { useState } from "react"
 import { Ibets, useGetAllBets } from "../hooks/useGetAllBets";
+import { useSession } from "next-auth/react";
 
 export default function () {
 
     const [selected, setSelected] = useState<'active' | 'inactive'>('active');
 
-    const { active, inactive } = useGetAllBets();
+    const session = useSession();
+    const userId = Number(session?.data?.user?.id)
+
+    const { active, inactive } = useGetAllBets(userId);
 
     console.log('active bets are :', active)
     console.log('Inactive bets are :', inactive)
