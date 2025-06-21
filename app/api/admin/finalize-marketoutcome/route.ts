@@ -31,7 +31,7 @@ export const POST = async (req: NextRequest) => {
         // Update market status
         await prisma.market.update({
             where: { id: marketId },
-            data: { status: 'RESOLVED' },
+            data: { status: 'RESOLVED', finalResult: result },
         });
 
         // TODO: Emit socket event here to notify clients

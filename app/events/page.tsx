@@ -21,7 +21,7 @@ interface allEvents {
         noCount: number,
         createdAt: Date,
         marketId: number
-    }[]
+    }[],
 }
 
 export default function () {

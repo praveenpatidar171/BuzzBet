@@ -1,7 +1,11 @@
 "use client"
 import { useGetlatestSnap } from "@/app/hooks/useGetlatestSnap";
+import { useGetMarketsnaps } from "@/app/hooks/useGetMarketsnaps";
+import { useLiveGraphUpdater } from "@/app/hooks/useLiveGraphUpdater";
 import { IsnapShot, useMarketSocket } from "@/app/hooks/useMarketSocket";
 import { BetPlacing } from "@/components/BetPlacing";
+import { SnapshotGraph } from "@/components/snapshotGraph";
+import { graphDataAtom, IgraphData } from "@/store/atoms/graphData";
 import { snapshotAtom } from "@/store/atoms/snapShot";
 import axios, { AxiosRequestConfig } from "axios";
 import { useAtomValue } from "jotai";
@@ -12,12 +16,15 @@ export default function ({ params }: { params: { id: string } }) {
     const marketId = params.id
 
     const latestSnap: IsnapShot = useAtomValue(snapshotAtom);
+    const graphData: IgraphData[] = useAtomValue(graphDataAtom);
 
     console.log('latestSnap is :', latestSnap)
 
 
     useGetlatestSnap(Number(marketId));
+    useGetMarketsnaps(Number(marketId));
     useMarketSocket(marketId);
+    useLiveGraphUpdater(Number(marketId));
 
     const handleBet = async ({ choice, price, quantity }: { choice: 'YES' | 'NO', price: number, quantity: number }) => {
         try {
@@ -61,11 +68,8 @@ export default function ({ params }: { params: { id: string } }) {
         }
     }
     return <div className="max-w-7xl mx-auto mt-10 flex justify-between items-center">
-        <div className="w-2/3 h-60 bg-slate-400">
-            {latestSnap.yesPrice}
-            {latestSnap.noCount}
-            {latestSnap.yesCount}
-            {JSON.stringify(latestSnap.createdAt)}
+        <div className="w-2/3 pl-0 py-10 pr-10 bg-white rounded-2xl shadow-lg">
+            <SnapshotGraph data={graphData} />
         </div>
         <div>
             <BetPlacing onClick={handleBet} />

@@ -46,6 +46,7 @@ model Market {
   updatedAt   DateTime         @updatedAt
   predictions Prediction[]
   snapshots   MarketSnapshot[]
+  finalResult FinalResult      @default(LIVE)
 }
 
 model Prediction {
@@ -57,6 +58,7 @@ model Prediction {
   choice             Choice
   amount             Int
   remainingAmount    Int
+  refundedAmount     Int          @default(0)
   quantity           Int
   matchedQuantity    Float?
   entryPrice         Float
@@ -72,16 +74,23 @@ model Prediction {
 }
 
 model MarketSnapshot {
-  id        Int      @id @default(autoincrement())
-  market    Market?  @relation(fields: [marketId], references: [id])
-  marketId  Int?
-  yesCount  Int
-  noCount   Int
-  yesPrice  Float    @default(5.0)
-  createdAt DateTime @default(now())
+  id          Int          @id @default(autoincrement())
+  market      Market?      @relation(fields: [marketId], references: [id])
+  marketId    Int?
+  yesCount    Int
+  noCount     Int
+  yesPrice    Float        @default(5.0)
+  createdAt   DateTime     @default(now())
+  finalResult MarketResult @default(LIVE)
 }
 
 enum Choice {
+  YES
+  NO
+}
+
+enum MarketResult {
+  LIVE
   YES
   NO
 }
@@ -98,4 +107,10 @@ enum BetStatus {
   REFUNDED
   CANCELLED
   RESOLVED
+}
+
+enum FinalResult {
+  LIVE
+  YES
+  NO
 }
