@@ -3,8 +3,9 @@ import { IsnapShot } from "@/app/hooks/useMarketSocket";
 import { snapshotAtom } from "@/store/atoms/snapShot";
 import { useAtomValue } from "jotai";
 import { useState } from "react"
+import { Loader } from "./Loader";
 
-export const BetPlacing = ({ onClick }: { onClick: ({ choice, price, quantity }: { choice: 'YES' | 'NO', price: number, quantity: number }) => void }) => {
+export const BetPlacing = ({ onClick, loading }: { onClick: ({ choice, price, quantity }: { choice: 'YES' | 'NO', price: number, quantity: number }) => void, loading: boolean }) => {
     const [selected, setSelected] = useState<'YES' | 'NO'>("YES");
     const [price, setPrice] = useState<number>(5);
     const [quantity, setQuantity] = useState<number>(1);
@@ -54,7 +55,7 @@ export const BetPlacing = ({ onClick }: { onClick: ({ choice, price, quantity }:
                     </div>
                 </div>
             </div>
-            <button onClick={() => onClick({ choice: selected, price, quantity })} className={`mt-6 ${selected === 'YES' ? 'bg-blue-600' : 'bg-[#e7685a]'} text-white font-semibold p-3 text-sm rounded-lg w-full`}>Place Order</button>
+            <button onClick={() => onClick({ choice: selected, price, quantity })} className={`mt-6 ${selected === 'YES' ? 'bg-blue-600' : 'bg-[#e7685a]'} text-white font-semibold p-3 text-sm rounded-lg w-full`}>{loading ? <Loader /> : 'Place Order'}</button>
         </div>
     </div>
 }

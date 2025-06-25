@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
         }
 
         const user = await prisma.user.findUnique({
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         });
 
         if (!user || !user.wallet) {
-            return NextResponse.json({ message: 'User or Wallet not found' }, { status: 404 })
+            return NextResponse.json({ success: false, message: 'User or Wallet not found' }, { status: 404 })
         };
         const { id } = await params;
         const marketId = Number(id);
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             price > 9.9 ||
             quantity < 1
         ) {
-            return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+            return NextResponse.json({ success: false, message: 'Invalid input' }, { status: 400 });
         };
 
         const market = await prisma.market.findUnique({
@@ -52,13 +52,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
         if (!market || market.status !== 'OPEN') {
             return NextResponse.json({
+                success: false,
                 message: 'Market Not Open'
             }, { status: 400 })
         };
 
         const totalCost = quantity * price * 100;
         if (user?.wallet?.balance < totalCost) {
-            return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 });
+            return NextResponse.json({ success:false, message: 'Insufficient balance' }, { status: 400 });
         }
 
         const betStatus = 'PENDING';
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             })
 
             if (existingBet) {
-                throw new Error('User already has a bet on this market')
+                throw new Error('User already has a bet on this market');
             }
 
             await tx.wallet.update({
@@ -100,16 +101,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             return bet;
         })
 
-        return NextResponse.json({ Bet: updated });
+        return NextResponse.json({ success: true, Bet: updated, message: 'Bet placed Successfully' });
 
     } catch (error) {
 
         if (error instanceof Error && error.message === 'User already has a bet on this market') {
-            return NextResponse.json({ message: error.message }, { status: 400 });
+            return NextResponse.json({ success: false, message: error.message }, { status: 400 });
         }
         console.error(error);
         return NextResponse.json({
-            message: 'Bet placement failed'
+            message: 'Bet placement failed',
+            success: false
         })
     }
 }

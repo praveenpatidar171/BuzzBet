@@ -17,16 +17,10 @@ async function matchPendingBets() {
     console.log('found pending bets :', pendingBets);
 
     for (const bet of pendingBets) {
-      console.log('inside bet:', bet.id)
       let betRemaining = bet.remainingAmount;
       if (betRemaining <= 0) continue;
-
-      const affectedUsers = new Set<number>();
-
       const oppositeChoice = bet.choice === 'YES' ? 'NO' : 'YES';
       const complementaryPrice = +(10 - bet.entryPrice).toFixed(1);
-      console.log('bet price is :', bet.entryPrice);
-      console.log('complementory price is:', complementaryPrice);
 
       const oppositeBets = await prisma.prediction.findMany({
         where: {
@@ -45,10 +39,10 @@ async function matchPendingBets() {
 
       for (const opposite of oppositeBets) {
 
-        console.log('inside the opposite bet :', opposite.id);
         if (betRemaining <= 0) break;
 
-        await prisma.$transaction(async (tx) => {
+
+        const result = await prisma.$transaction(async (tx) => {
           // Lock both original bets
 
           await tx.$queryRaw`SELECT * FROM "Prediction" WHERE "id" = ${bet.id} FOR UPDATE`;
@@ -69,20 +63,16 @@ async function matchPendingBets() {
             lockedBet.status !== 'PENDING' ||
             lockedOpposite.status !== 'PENDING'
           ) {
-            return; // Skip this pair
+            return { affectedUsers: [], eventsToEmit: [], newBetRemaining: lockedBet?.remainingAmount }; // Skip this pair
           }
 
           const matchAmount = Math.min(lockedBet.remainingAmount, lockedOpposite.remainingAmount);
-          console.log('found matched amount is :', matchAmount);
 
           const matchedQuantityRaw = (matchAmount / 100) / lockedBet.entryPrice;
           const matchedQuantity = Math.floor(matchedQuantityRaw * 100) / 100;
-          console.log('matched quantity is :', matchedQuantity);
 
           const matchedQuantityRawOppo = (matchAmount / 100) / lockedOpposite.entryPrice;
           const matchedQuantityOppo = Math.floor(matchedQuantityRawOppo * 100) / 100;
-          console.log('matched quantity is :', matchedQuantityOppo);
-
           const now = new Date();
 
           // Create child matched records
@@ -118,10 +108,8 @@ async function matchPendingBets() {
           });
 
           const newBetRemaining = lockedBet.remainingAmount - matchAmount;
-
-          console.log('New BEt Remaining is :', newBetRemaining)
           const newOppositeRemaining = lockedOpposite.remainingAmount - matchAmount;
-          console.log('New  opposite BEt Remaining is :', newOppositeRemaining)
+
           // Update parent bets
           await tx.prediction.update({
             where: { id: lockedBet.id },
@@ -140,9 +128,6 @@ async function matchPendingBets() {
               matchedAt: newOppositeRemaining === 0 ? now : undefined,
             },
           });
-          affectedUsers.add(lockedBet.userId)
-          affectedUsers.add(lockedOpposite.userId)
-          betRemaining = newBetRemaining;
 
           console.log(`Matched ${matchAmount} between bet ${bet.id} and opposite ${opposite.id}`);
 
@@ -209,19 +194,16 @@ async function matchPendingBets() {
             where: { marketId: lockedBet.marketId, choice: 'YES', status: 'MATCHED', parentPredictionId: { not: null } }
           });
 
-          console.log('yes Count is :', yesCount)
           const noCount = await tx.prediction.count({
             where: { marketId: lockedBet.marketId, choice: 'NO', status: 'MATCHED', parentPredictionId: { not: null } }
           });
-
-          console.log('no Count is :', noCount)
 
           const lastSnapshot = await tx.marketSnapshot.findFirst({
             where: { marketId: lockedBet.marketId },
             orderBy: { createdAt: 'desc' },
           });
 
-          console.log('last Snapshot is :', lastSnapshot)
+          const localeventsToEmit: { channel: string; payload: any }[] = [];
 
           if (!lastSnapshot || lastSnapshot.yesPrice !== normalizedYesPrice) {
             const newSnap = await tx.marketSnapshot.create({
@@ -232,21 +214,30 @@ async function matchPendingBets() {
                 noCount,
               }
             });
-            console.log('latest Snap is :', newSnap)
 
-            console.log('starting emmiting event ')
+            localeventsToEmit.push({
+              channel: 'snapshot:update',
+              payload: {
+                marketId: lockedBet.marketId,
+                newsnap: newSnap
+              }
+            })
+          }
 
-            await redis.publish('snapshot:update', JSON.stringify({
-              marketId: lockedBet.marketId,
-              newsnap: newSnap
-            }))
+          return {
+            affectedUsers: [lockedBet.userId, lockedOpposite.userId],
+            eventsToEmit: localeventsToEmit,
+            newBetRemaining: newBetRemaining
           }
 
         });
 
-        for (const userId of affectedUsers) {
-          console.log('inside the affetceduser')
+        betRemaining = result.newBetRemaining as number;
+        for (const userId of result.affectedUsers) {
           await redis.publish('prediction:update', JSON.stringify({ userId }));
+        }
+        for (const event of result.eventsToEmit) {
+          await redis.publish(event.channel, JSON.stringify(event.payload));
         }
       }
     }
@@ -259,7 +250,7 @@ async function matchPendingBets() {
 
 export function startBetMatchingJob() {
   console.log('Starting bet matching job scheduler...');
-  cron.schedule('*/10 * * * * *', () => {
+  cron.schedule('*/20 * * * * *', () => {
     matchPendingBets();
   });
 }

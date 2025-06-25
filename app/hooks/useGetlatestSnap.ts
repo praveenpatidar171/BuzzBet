@@ -14,7 +14,6 @@ export const useGetlatestSnap = (marketId: number) => {
                 withCredentials: true
             }
             const { data } = await axios.get(`/api/markets/${marketId}/latestsnap`, config);
-            console.log('latestSnap from api call:', data.snapshot)
             setSnapshot(data.snapshot);
         } catch (error: any) {
             console.error('Error fetching latest snapshot:', error?.response?.data || error.message);

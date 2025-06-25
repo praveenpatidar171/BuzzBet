@@ -5,3 +5,33 @@
 body {
     background-color: #f5f5f5;
 }
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 4s linear infinite;
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}

@@ -14,7 +14,6 @@ export const useGetMarketsnaps = (marketId: number) => {
                 withCredentials: true
             }
             const { data } = await axios.get(`/api/markets/${marketId}/allsnaps`, config);
-            console.log('all the snaps from call:', data.allsnapshots);
 
             const formatted = data.allsnapshots.map((snap: any) => ({
                 time: new Date(snap.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -23,7 +22,6 @@ export const useGetMarketsnaps = (marketId: number) => {
                 yesCount: snap.yesCount,
                 noCount: snap.noCount
             }))
-            console.log(formatted)
             setGraphData(formatted);
         } catch (error: any) {
             console.error('Error fetching latest snapshot:', error?.response?.data || error.message);

@@ -1,6 +1,7 @@
 import { Ibets, IpartialBets } from "@/app/hooks/useGetAllBets"
 import { useEffect, useRef, useState } from "react"
 import { InactiveBetViewCard } from "./InactiveBetViewCard";
+import { finalShow } from "./TabsClosedBetCard";
 
 export const ClosedBetCard = ({ bet }: { bet: Ibets }) => {
 
@@ -42,17 +43,18 @@ export const ClosedBetCard = ({ bet }: { bet: Ibets }) => {
                 <h1>{bet.choice}</h1>
                 <h1>&#8377; {(bet.amount) / 100}</h1>
                 <h1>&#8377; {(bet.amount - bet.refundedAmount) / 100}</h1>
-                <h1>{getOutcome(bet) === 'Refunded' && <span >&#8377; {(bet.refundedAmount / 100).toString() + ' '}</span>}{getOutcome(bet)}</h1>
+                <h1>{(getOutcome(bet) === 'Refunded' || getOutcome(bet) === 'Cancelled') && <span >&#8377; {(bet.refundedAmount / 100).toString() + ' '}</span>}{getOutcome(bet)}</h1>
                 <button onClick={() => setView(!view)} className="px-2 py-1 rounded-md text-[10px] border cursor-pointer">View &#8595; </button>
             </div>
         </div>
         {/* toggle card  */}
         {view && <div ref={dropdownRef} className={` bg-yellow-200 p-3 flex flex-col items-center justify-between mb-2 rounded-lg absolute w-full top-full left-0 mt-2 z-10`}>
-            <div className="flex items-center justify-between w-[650px] font-semibold text-[12px] mb-4">
+            <div className="flex items-center justify-between w-[650px] font-semibold text-[12px] mb-4 pl-4">
                 <h1>Matched At</h1>
                 <h1>Matched Amount</h1>
                 <h1>Entry Price</h1>
                 <h1>Status</h1>
+                <h1>Market Result</h1>
                 <h1>Return</h1>
             </div>
             {
@@ -67,12 +69,15 @@ export function getOutcome(prediction: Ibets) {
 
     if (status === 'CANCELLED') return 'Cancelled';
     if (status === 'REFUNDED') return 'Refunded';
-    if (status === 'MATCHED') {
+    if (status === 'MATCHED' && market.status === 'RESOLVED') {
         if (prediction.choice === market.finalResult) {
             return 'Win'
         } else {
             return 'Loss'
         }
+    }
+    if (status === 'MATCHED' && market.status !== 'RESOLVED') {
+        return 'Ongoing'
     }
 
     if (market.status === 'RESOLVED') {

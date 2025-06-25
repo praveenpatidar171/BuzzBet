@@ -12,7 +12,8 @@ export const InactiveBetViewCard = ({ bet, outcome }: { bet: IpartialBets, outco
                 <h1>&#8377; {(bet.amount) / 100}</h1>
                 <h1>&#8377; {bet.entryPrice}</h1>
                 <h1>{bet.status}</h1>
-                <h1>&#8377; {outcome === bet.choice ? bet.matchedQuantity as number * 10 : 0}</h1>
+                <h1>{outcome}</h1>
+                <h1>{outcome !== 'LIVE' && <span>&#8377;</span>} {outcome === 'LIVE' ? 'Market is Live' : outcome === bet.choice ? bet.matchedQuantity as number * 10 : 0}</h1>
             </div>
         </div>
     )

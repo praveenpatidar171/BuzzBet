@@ -10,8 +10,10 @@ export async function refundUnmatchedBets(marketId: number) {
         },
     });
 
+    const affectedUserIds = new Set<number>();
+
     for (const bet of unmatchedBets) {
-        await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx) => {
 
             await tx.$queryRaw`SELECT * FROM "Prediction" WHERE "id" = ${bet.id} FOR UPDATE`;
 
@@ -28,8 +30,17 @@ export async function refundUnmatchedBets(marketId: number) {
 
             await tx.prediction.update({
                 where: { id: lockedBet.id },
-                data: { status: 'REFUNDED', remainingAmount: 0, refundedAmount: lockedBet.remainingAmount},
+                data: { status: 'REFUNDED', remainingAmount: 0, refundedAmount: lockedBet.remainingAmount },
             });
+
+            return lockedBet.userId
+
         });
+        if (result) {
+
+            affectedUserIds.add(result);
+        }
     }
+
+    return [...affectedUserIds];
 }

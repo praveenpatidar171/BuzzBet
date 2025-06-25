@@ -33,8 +33,6 @@ export const EventCard = ({ id, title, description, imageUrl, question, status, 
         </div>
         <h2 className="text-sm mt-2 font-semibold">{description}<a className="text-blue-600 font-semibold"> Read More</a></h2>
         <div className="flex justify-between text-[12px] mt-2">
-            {/* <button className="rounded-md font-bold bg-blue-100 p-2 w-48 text-blue-600" >Yes &#8377;{latestSnap?.yesPrice.toFixed(1)}</button>
-            <button className="rounded-md font-bold bg-[#fef6f5] p-2 w-48 text-red-400" >No &#8377;{(10.0 - latestSnap?.yesPrice).toFixed(1)}</button> */}
             <button className="rounded-md font-bold bg-blue-100 p-2 w-48 text-blue-600" >Yes &#8377;{yesPrice.toFixed(1)}</button>
             <button className="rounded-md font-bold bg-[#fef6f5] p-2 w-48 text-red-400" >No &#8377;{(10.0 - yesPrice).toFixed(1)}</button>
         </div>

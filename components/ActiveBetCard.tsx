@@ -1,6 +1,7 @@
 import { Ibets } from "@/app/hooks/useGetAllBets"
 import { ActiveBetViewCard } from "./ActiveBetViewCard"
 import { useEffect, useRef, useState } from "react"
+import { cancelBets } from "@/app/lib/actions/cancelBets";
 
 export const ActiveBetCard = ({ bet }: { bet: Ibets }) => {
 
@@ -25,8 +26,9 @@ export const ActiveBetCard = ({ bet }: { bet: Ibets }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleCancel = () => {
-
+    const handleCancel = async (betId: number) => {
+        console.log('clicked on cancel button')
+        await cancelBets(betId);
     }
     return <div className="relative">
         {/* my main card  */}
@@ -47,23 +49,25 @@ export const ActiveBetCard = ({ bet }: { bet: Ibets }) => {
                 <h1>&#8377; {(bet.amount - bet.remainingAmount) / 100}</h1>
                 <h1>&#8377; {(bet.remainingAmount / 100)}</h1>
                 <div className='flex justify-between items-center w-28'>
-                    <button onClick={handleCancel} disabled={bet.status !== 'PENDING' || bet.remainingAmount <= 0} className="px-2 py-1 text-white bg-red-500 rounded-md text-[10px]">Cancel</button>
-                    <button onClick={() => setView(!view)}  className="px-2 py-1 rounded-md text-[10px] border">View &#8595; </button>
+                    <button onClick={() => handleCancel(bet.id)} disabled={bet.status !== 'PENDING' || bet.remainingAmount <= 0} className={`px-2 py-1 ${bet.status !== 'PENDING' || bet.remainingAmount <= 0 ? 'bg-gray-700' : 'bg-red-500'} text-white rounded-md text-[10px]`}>Cancel</button>
+                    <button onClick={() => setView(!view)} className="px-2 py-1 rounded-md text-[10px] border">View &#8595; </button>
                 </div>
             </div>
         </div>
         {/* toggle card  */}
-        {view && <div ref={dropdownRef} className={` bg-yellow-200 p-3 flex flex-col items-center justify-between mb-2 rounded-lg absolute w-full top-full left-0 mt-2 z-10`}>
-            <div className="flex items-center justify-between w-[650px] font-semibold text-[12px] mb-4">
-                <h1>Matched At</h1>
-                <h1>Matched Amount</h1>
-                <h1>Entry Price</h1>
-                <h1>Status</h1>
-                <h1>Potential Return</h1>
+        {
+            view && <div ref={dropdownRef} className={` bg-yellow-200 p-3 flex flex-col items-center justify-between mb-2 rounded-lg absolute w-full top-full left-0 mt-2 z-10`}>
+                <div className="flex items-center justify-between w-[650px] font-semibold text-[12px] mb-4">
+                    <h1>Matched At</h1>
+                    <h1>Matched Amount</h1>
+                    <h1>Entry Price</h1>
+                    <h1>Status</h1>
+                    <h1>Potential Return</h1>
+                </div>
+                {
+                    bet.partialBets.map((bet) => <ActiveBetViewCard key={bet.id} bet={bet} />)
+                }
             </div>
-            {
-                bet.partialBets.map((bet) => <ActiveBetViewCard key={bet.id} bet={bet} />)
-            }
-        </div>}
-    </div>
+        }
+    </div >
 }

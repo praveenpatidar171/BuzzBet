@@ -13,6 +13,8 @@ export async function payoutMatchedBets(marketId: number, result: 'YES' | 'NO') 
 
     console.log('matched bets are :', matchedBets);
 
+    const affectedUserIds = new Set<number>();
+
     for (const bet of matchedBets) {
 
         console.log('inside matchbet :', bet)
@@ -21,7 +23,7 @@ export async function payoutMatchedBets(marketId: number, result: 'YES' | 'NO') 
             continue;
         }
 
-        await prisma.$transaction(async (tx) => {
+        const output = await prisma.$transaction(async (tx) => {
 
             await tx.$queryRaw`SELECT * FROM "Prediction" WHERE "id" = ${bet.id} FOR UPDATE`;
 
@@ -58,6 +60,15 @@ export async function payoutMatchedBets(marketId: number, result: 'YES' | 'NO') 
                 where: { id: bet.id },
                 data: { status: 'RESOLVED' },
             });
+
+            return bet.userId;
+
         });
+        if (output) {
+            affectedUserIds.add(output);
+        }
     }
+
+    return [...affectedUserIds];
+
 }

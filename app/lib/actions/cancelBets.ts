@@ -3,6 +3,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth";
 import prisma from "../prisma";
+import redis from "../utils/redis";
 
 export async function cancelBets(betId: number) {
     const session = await getServerSession(authOptions);
@@ -47,9 +48,12 @@ export async function cancelBets(betId: number) {
                 data: {
                     status: "CANCELLED",
                     remainingAmount: 0,
+                    refundedAmount: bet.remainingAmount
                 },
             });
         });
+
+        await redis.publish("prediction:update", JSON.stringify({ userId }));
 
         return { message: "Bet cancelled and refunded!" };
     } catch (error: any) {

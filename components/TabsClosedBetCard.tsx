@@ -19,8 +19,31 @@ export const TabsClosedBetCard = ({ bet }: { bet: Ibets }) => {
                 <h1>{bet.choice}</h1>
                 <h1>&#8377; {(bet.amount) / 100}</h1>
                 <h1>&#8377; {(bet.amount - bet.refundedAmount) / 100}</h1>
-                <h1>{getOutcome(bet) === 'Win' && <span>&#8377;</span>} {getOutcome(bet) === 'Win' ? bet.matchedQuantity as number * 10 : getOutcome(bet)}</h1>
+                {/* <h1>{getOutcome(bet) === 'Win' && <span>&#8377;</span>} {getOutcome(bet) === 'Win' ? bet.matchedQuantity as number * 10 : getOutcome(bet)}</h1> */}
+                <h1>{finalShow(bet)}</h1>
             </div>
         </div>
     </div>
+}
+
+export function finalShow(bet: Ibets) {
+    const status = getOutcome(bet);
+
+    console.log('status inside finalshow is :', status)
+
+    if (status === 'Win') {
+        return (<h1>&#8377; {bet.matchedQuantity as number * 10} </h1>)
+    }
+    if (status === 'Cancelled') {
+        return (<h1>&#8377; {(bet.refundedAmount) / 100 + " " + status} </h1>)
+    }
+    if (status === 'Refunded') {
+        return (<h1>&#8377; {(bet.refundedAmount) / 100 + " " + status} </h1>)
+    }
+
+    if (status === 'Loss') {
+        return (<h1>&#8377; {0} </h1>)
+    }
+
+    return 'Ongoing'
 }
