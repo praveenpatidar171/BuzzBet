@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nodemon --watch server.ts --ext ts --exec esr server.ts",
-    "build": "next build && tsc server.ts --outDir dist",
-    "start-server": "NODE_ENV=production  node dist/server.js",
+    "build": "next build",
+    "start-server": "NODE_ENV=production  tsx server.ts",
     "lint": "next lint",
     "start-bet-job": "tsx scripts/runBetMatchingJob.ts",
     "start:all": "concurrently -k -s first -n SERVER,JOB -c green,blue \"npm run start-server\" \"npm run start-bet-job\""
