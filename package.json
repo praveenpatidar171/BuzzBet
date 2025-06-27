@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "nodemon --watch server.ts --ext ts --exec esr server.ts",
     "build": "next build",
-    "start": "NODE_ENV=production node .next/standalone/server.js",
+    "start-server": "NODE_ENV=production node .next/standalone/server.js",
     "lint": "next lint",
-    "start-bet-job": "tsx scripts/runBetMatchingJob.ts"
+    "start-bet-job": "tsx scripts/runBetMatchingJob.ts",
+    "start:all": "concurrently -k -s first -n SERVER,JOB -c green,blue \"npm run start-server\" \"npm run start-bet-job\""
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",

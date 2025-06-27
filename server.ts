@@ -1,9 +1,21 @@
+
+//Error handlers 
+process.on("uncaughtException", (err) => {
+    console.error("[Fatal] Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("[Fatal] Unhandled Rejection:", reason);
+});
+
+
 import next from "next";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { parse } from "url";
-import redis from "./app/lib/utils/globalRedis";
+
 import { getUpdatedPortfolio } from "./app/lib/predictionsUpdate";
+import { redisSub } from "./app/lib/utils/globalRedis";
 
 console.log('server.ts is started')
 
@@ -27,7 +39,7 @@ app.prepare().then(() => {
         },
     });
 
-    redis.subscribe('snapshot:update', (err) => {
+    redisSub.subscribe('snapshot:update', (err) => {
         if (err) {
             console.error(" Failed to subscribe to snapshot:update:", err);
         } else {
@@ -35,7 +47,7 @@ app.prepare().then(() => {
         }
     })
 
-    redis.subscribe('prediction:update', (err) => {
+    redisSub.subscribe('prediction:update', (err) => {
         if (err) {
             console.error("Failed to subscribe to prediction:update:", err);
         } else {
@@ -43,7 +55,7 @@ app.prepare().then(() => {
         }
     });
 
-    redis.on('message', async (channel, message) => {
+    redisSub.on('message', async (channel, message) => {
         if (channel === 'snapshot:update') {
             try {
                 const { marketId, newsnap } = JSON.parse(message);

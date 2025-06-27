@@ -7,6 +7,7 @@ import Redis from "ioredis";
 
 declare global {
     var redisClient: Redis | undefined;
+    var redisSubscriber: Redis | undefined;
 }
 
 console.log(process.env.REDIS_URL);
@@ -15,6 +16,7 @@ if (!process.env.REDIS_URL) {
 }
 
 const redis = global.redisClient || new Redis(process.env.REDIS_URL);
+const redisSub = global.redisSubscriber || new Redis(process.env.REDIS_URL);
 
 redis.on("connect", () => {
     console.log("Redis connected from global");
@@ -26,9 +28,10 @@ redis.on("error", (err) => {
 
 if (process.env.NODE_ENV !== "production") {
     global.redisClient = redis;
+    global.redisSubscriber = redisSub;
 }
 
-export default redis;
+export { redis, redisSub };
 
 
 //// for local development
