@@ -34,6 +34,7 @@
     "@types/node": "^20.19.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.0",
     "esbuild": "^0.25.5",
     "esbuild-runner": "^2.2.2",
     "eslint": "^9",

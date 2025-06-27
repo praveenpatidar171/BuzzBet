@@ -1,8 +1,5 @@
 "use client"
 import { MarketStatus } from "@/app/generated/prisma"
-import { IsnapShot } from "@/app/hooks/useMarketSocket"
-import { snapshotAtom } from "@/store/atoms/snapShot"
-import { useAtomValue } from "jotai"
 import { useRouter } from "next/navigation"
 
 export interface EventProps {
@@ -17,9 +14,6 @@ export interface EventProps {
 export const EventCard = ({ id, title, description, imageUrl, question, status, yesPrice }: EventProps) => {
 
     const router = useRouter()
-    const latestSnap: IsnapShot = useAtomValue(snapshotAtom);
-
-
     return <div className="bg-white w-[450px] p-6 rounded-lg shadow-lg m-5 cursor-pointer" onClick={() => router.push(`/events/${id}`)}>
         <div className="flex items-center justify-between">
             <h1 className="font-semibold text-sm">{title}</h1>
@@ -27,7 +21,6 @@ export const EventCard = ({ id, title, description, imageUrl, question, status, 
         </div>
         <div className="flex space-x-4 mt-3">
             <img className="h-16 w-24 rounded-lg" src={imageUrl as string}>
-
             </img>
             <p className="font-semibold">{question}</p>
         </div>

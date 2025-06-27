@@ -29,6 +29,7 @@ export const useGetMarketsnaps = (marketId: number) => {
     }
 
     useEffect(() => {
+        if (!marketId || marketId <= 0) return;
         fetchAllSnaps();
     }, [marketId])
 }

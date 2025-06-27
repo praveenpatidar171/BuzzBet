@@ -21,6 +21,7 @@ export const useGetlatestSnap = (marketId: number) => {
     }
 
     useEffect(() => {
+        if (!marketId || marketId <= 0) return;
         fetchLatestSnap();
     }, [marketId])
 }

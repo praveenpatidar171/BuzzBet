@@ -3,7 +3,7 @@ import prisma from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
         const totalCost = quantity * price * 100;
         if (user?.wallet?.balance < totalCost) {
-            return NextResponse.json({ success:false, message: 'Insufficient balance' }, { status: 400 });
+            return NextResponse.json({ success: false, message: 'Insufficient balance' }, { status: 400 });
         }
 
         const betStatus = 'PENDING';

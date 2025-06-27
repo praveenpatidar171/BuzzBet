@@ -3,7 +3,7 @@ import ActiveBets from "@/components/ActiveBets"
 import { ClosedBets } from "@/components/ClosedBets"
 
 import { useState } from "react"
-import { Ibets, useGetAllBets } from "../hooks/useGetAllBets";
+import { useGetAllBets } from "../hooks/useGetAllBets";
 import { useSession } from "next-auth/react";
 
 export default function () {

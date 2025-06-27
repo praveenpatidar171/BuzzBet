@@ -16,7 +16,7 @@ export function useMarketSocket(marketId: string) {
     const [, setSnapshot] = useAtom(snapshotAtom);
 
     useEffect(() => {
-        if (!marketId) return
+        if (!marketId) return;
         console.log('useMarketSocket called with marketId:', marketId);
         const socket = getSocket();
         console.log('Socket:', socket.connected);

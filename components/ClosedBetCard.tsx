@@ -1,7 +1,6 @@
-import { Ibets, IpartialBets } from "@/app/hooks/useGetAllBets"
+import { Ibets } from "@/app/hooks/useGetAllBets"
 import { useEffect, useRef, useState } from "react"
 import { InactiveBetViewCard } from "./InactiveBetViewCard";
-import { finalShow } from "./TabsClosedBetCard";
 
 export const ClosedBetCard = ({ bet }: { bet: Ibets }) => {
 

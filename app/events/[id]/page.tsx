@@ -2,35 +2,33 @@
 import { useGetlatestSnap } from "@/app/hooks/useGetlatestSnap";
 import { useGetMarketsnaps } from "@/app/hooks/useGetMarketsnaps";
 import { useLiveGraphUpdater } from "@/app/hooks/useLiveGraphUpdater";
-import { IsnapShot, useMarketSocket } from "@/app/hooks/useMarketSocket";
+import { useMarketSocket } from "@/app/hooks/useMarketSocket";
 import { ErrorToast } from "@/app/lib/utils/ErrorToast";
 import { SuccessToast } from "@/app/lib/utils/SuccessToast";
 import { BetPlacing } from "@/components/BetPlacing";
 import { Loader } from "@/components/Loader";
 import { SnapshotGraph } from "@/components/snapshotGraph";
 import { graphDataAtom, IgraphData } from "@/store/atoms/graphData";
-import { snapshotAtom } from "@/store/atoms/snapShot";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { useAtomValue } from "jotai";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function ({ params }: { params: { id: string } }) {
+export default function ({ params }: { params: Promise<{ id: string }> }) {
+
+    const [marketId, setMarketId] = useState<string | null>(null)
+
+    useEffect(() => {
+        params.then(({ id }) => setMarketId(id));
+    }, [params]);
+
     const session = useSession();
-    const marketId = params.id
-
     const [loading, setLoading] = useState(false)
     const [resultLoading, setResultLoading] = useState(false);
-
-    const latestSnap: IsnapShot = useAtomValue(snapshotAtom);
     const graphData: IgraphData[] = useAtomValue(graphDataAtom);
-
-    console.log('latestSnap is :', latestSnap)
-
-
     useGetlatestSnap(Number(marketId));
     useGetMarketsnaps(Number(marketId));
-    useMarketSocket(marketId);
+    useMarketSocket(marketId as string);
     useLiveGraphUpdater(Number(marketId));
 
     const handleBet = async ({ choice, price, quantity }: { choice: 'YES' | 'NO', price: number, quantity: number }) => {
@@ -97,6 +95,7 @@ export default function ({ params }: { params: { id: string } }) {
             setResultLoading(false);
         }
     }
+    if (!marketId) return <Loader />
     return <div>{
 
         !session?.data?.user ? <Loader /> :

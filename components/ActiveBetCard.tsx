@@ -2,7 +2,6 @@ import { Ibets } from "@/app/hooks/useGetAllBets"
 import { ActiveBetViewCard } from "./ActiveBetViewCard"
 import { useEffect, useRef, useState } from "react"
 import { cancelBets } from "@/app/lib/actions/cancelBets";
-
 export const ActiveBetCard = ({ bet }: { bet: Ibets }) => {
 
     const [view, setView] = useState(false);
