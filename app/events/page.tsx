@@ -36,7 +36,7 @@ export default function () {
             const config: AxiosRequestConfig = {
                 withCredentials: true
             }
-            const { data } = await axios.get('http://localhost:3000/api/markets', config);
+            const { data } = await axios.get('/api/markets', config);
             setAllEvents(data);
 
             console.log('markets are :', data)
