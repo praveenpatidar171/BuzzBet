@@ -1,7 +1,5 @@
 'use client'
-import { getServerSession } from "next-auth";
-import { authOptions } from "./lib/auth";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 export default function Home() {
